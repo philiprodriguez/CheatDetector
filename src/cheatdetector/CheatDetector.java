@@ -311,9 +311,9 @@ public class CheatDetector {
     }
     
     /*
-        This method returns the edit distance between [s1] and [s2]. It was ported
-        from a memoized solution. I bet we can space-save this in the future, since
-        it seems like it only looks one row down at most...
+        This method returns the edit distance between [s1] and [s2]. It was
+        ported from a memoized solution I had before. I also space-saved that
+        solution.
     */
     public static int editDistance(String s1, String s2) {
         //Pathological cases
@@ -326,7 +326,7 @@ public class CheatDetector {
             return s1.length();
         }
         
-        int[][] editDistance = new int[s1.length()][s2.length()];
+        int[][] editDistance = new int[2][s2.length()];
         
         for(int index1 = s1.length()-1; index1 >= 0; index1--)
         {
@@ -337,22 +337,22 @@ public class CheatDetector {
                 //If there is no conflict here, then just move along!
                 if (s1.charAt(index1) == s2.charAt(index2))
                 {
-                    editDistance[index1][index2] = getEditDistance(editDistance, index1+1, index2+1);
+                    editDistance[index1%2][index2] = getEditDistance(s1, s2, editDistance, index1+1, index2+1);
                 }
                 else
                 {
                     //There is a conflict at this point, so we must resolve it!
                     
                     //Suppose we insert the correct character into s1...
-                    int insert = 1+getEditDistance(editDistance, index1, index2+1);
+                    int insert = 1+getEditDistance(s1, s2, editDistance, index1, index2+1);
 
                     //Suppose we delete a char in s1...
-                    int delete = 1+getEditDistance(editDistance, index1+1, index2);
+                    int delete = 1+getEditDistance(s1, s2, editDistance, index1+1, index2);
 
                     //Suppose we change the char in s1 to be like s2...
-                    int substitute = 1+getEditDistance(editDistance, index1+1, index2+1);
+                    int substitute = 1+getEditDistance(s1, s2, editDistance, index1+1, index2+1);
 
-                    editDistance[index1][index2] = Math.min(insert, Math.min(delete, substitute));
+                    editDistance[index1%2][index2] = Math.min(insert, Math.min(delete, substitute));
                 }
             }
         }
@@ -364,10 +364,10 @@ public class CheatDetector {
         This is a helper method for accessing the editDistance array. It is
         primarily to easily handle going out of bounds, etc.
     */
-    private static int getEditDistance(int[][] editDistance, int index1, int index2)
+    private static int getEditDistance(String s1, String s2, int[][] editDistance, int index1, int index2)
     {
-        int s1Length = editDistance.length;
-        int s2Length = editDistance[0].length;
+        int s1Length = s1.length();
+        int s2Length = s2.length();
         
         //If we are essentially out of bounds for s1, then we'll need to delete
         //any remaining characters of s2...
@@ -384,56 +384,8 @@ public class CheatDetector {
         }
         
         //If we are in bounds, then just return what we already know!
-        return editDistance[index1][index2];
+        return editDistance[index1%2][index2];
     }
-    /*
-    private static int editDistanceDP(String s1, String s2)
-    {
-        memo = new int[s1.length()][s2.length()];
-        for(int r = 0; r < memo.length; r++)
-            Arrays.fill(memo[r], -1);
-        return editDistanceDP(s1, s2, 0, 0);
-    }
-    
-    private static int[][] memo;
-    private static int editDistanceDP(String s1, String s2, int index1, int index2) {
-        if (index1 >= s1.length()) {
-            //we must insert everything left in s2 into s1 to finish it up!
-            return s2.length() - index2;
-        }
-        if (index2 >= s2.length())
-        {
-            //we must delete everything left in s1
-            return s1.length() - index1;
-        }
-        
-        //Did we already solve this state?
-        if (memo[index1][index2] != -1)
-        {
-            return memo[index1][index2];
-        }
-
-        //What if we have a match?
-        if (s1.charAt(index1) == s2.charAt(index2)) 
-        {
-            return editDistanceDP(s1, s2, index1 + 1, index2 + 1);
-        }
-        else
-        {
-            //Suppose we insert, substitute, or delete char at index1...
-            //insert
-            int insert = 1 + editDistanceDP(s1, s2, index1, index2 + 1);
-            
-            //suppose we substitute
-            int substitute = 1 + editDistanceDP(s1, s2, index1 + 1, index2 + 1);
-            
-            //suppose we delete
-            int delete = 1 + editDistanceDP(s1, s2, index1 + 1, index2);
-            
-            return memo[index1][index2] = Math.min(insert, Math.min(substitute, delete));
-        }
-    }
-    */
 }
 
 /*
